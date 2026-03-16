@@ -4,8 +4,8 @@ import { Utils } from "../utils/Utils";
 
 //all values in config are ratios to the smaller screen side (width or height)
 const spinnerConfig = {
-  radiusRatio: 0.05,
-  thicknessRatio: 0.25,
+  radius: 0.05,
+  thickness: 0.25,
   base: {
     color: 0xf2f2f2,
     alpha: 0.45,
@@ -19,11 +19,11 @@ const spinnerConfig = {
 } as const;
 
 const badgeConfig = {
-  widthRatio: 0.56,
-  textWidthRatio: 0.52,
-  heightRatio: 0.15,
-  gapRatio: 0.05,
-  fillColor: 0xff8c3a,
+  width: 0.56,
+  height: 0.15,
+  textWidth: 0.52,
+  gap: 0.05,
+  color: 0xff8c3a,
 } as const;
 
 export class LoadingScreen extends AdaptiveScreen {
@@ -93,26 +93,26 @@ export class LoadingScreen extends AdaptiveScreen {
 
   resize(width: number, height: number): void {
     const minSide = Math.min(width, height);
-    const gap = Math.round(minSide * badgeConfig.gapRatio);
+    const gap = Math.round(minSide * badgeConfig.gap);
 
-    const spinnerRadius = minSide * spinnerConfig.radiusRatio;
+    const spinnerRadius = minSide * spinnerConfig.radius;
     const spinnerY = height * 0.5 - gap * 0.5 - spinnerRadius;
     this.spinnerBase.position.set(width * 0.5, spinnerY);
     this.spinnerHead.position.set(width * 0.5, spinnerY);
     this.drawSpinner(spinnerRadius);
     
-    const badgeWidth = Math.round(minSide * badgeConfig.widthRatio);
-    const badgeHeight = Math.round(minSide * badgeConfig.heightRatio);
+    const badgeWidth = Math.round(minSide * badgeConfig.width);
+    const badgeHeight = Math.round(minSide * badgeConfig.height);
     const badgeY = height * 0.5 + gap * 0.5 + badgeHeight * 0.5;
     this.drawBadge(width * 0.5, badgeY, badgeWidth, badgeHeight);
 
-    const titleWidth = Math.round(minSide * badgeConfig.textWidthRatio);
+    const titleWidth = Math.round(minSide * badgeConfig.textWidth);
     this.title.position.set(width * 0.5, badgeY);
     Utils.rescaleTextToFitWidth(this.title, titleWidth);
   }
 
   private drawSpinner(radius: number): void {
-    const thickness = Math.round(radius * spinnerConfig.thicknessRatio);
+    const thickness = Math.round(radius * spinnerConfig.thickness);
 
     const headStart = spinnerConfig.head.startAngle;
     const headEnd = headStart + spinnerConfig.head.sweepAngle;
@@ -131,7 +131,7 @@ export class LoadingScreen extends AdaptiveScreen {
 
   private drawBadge(centerX: number, centerY: number, width: number, height: number): void {
     this.titleBadge.clear();
-    this.titleBadge.beginFill(badgeConfig.fillColor);
+    this.titleBadge.beginFill(badgeConfig.color);
     this.titleBadge.drawRect(centerX - width * 0.5, centerY - height * 0.5, width, height);
     this.titleBadge.endFill();
   }

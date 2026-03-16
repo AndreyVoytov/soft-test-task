@@ -13,7 +13,7 @@ export class FpsCounter {
       new TextStyle({
         fill: 0x8f8f8f,
         fontFamily: "Arial",
-        fontSize: 14,
+        fontSize: 16,
         fontWeight: "700",
       }),
     );

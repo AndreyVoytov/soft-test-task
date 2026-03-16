@@ -2,12 +2,14 @@
 import { Utils } from "../utils/Utils";
 import { AdaptiveScreen } from "../screens/AdaptiveScreen";
 import { FpsCounter } from "./FpsCounter";
+import { FullscreenButton } from "./FullscreenButton";
 
 export abstract class BaseGame {
   private app: Application<HTMLCanvasElement>;
   private stageRoot: Container;
   private currentScreen: AdaptiveScreen | null = null;
   private fpsCounter: FpsCounter;
+  private fullscreenButton: FullscreenButton;
 
   constructor() {
     this.app = new Application<HTMLCanvasElement>({
@@ -20,6 +22,8 @@ export abstract class BaseGame {
     this.app.stage.addChild(this.stageRoot);
 
     this.fpsCounter = new FpsCounter(this.app.ticker, this.app.stage);
+    this.fullscreenButton = new FullscreenButton(this.app.stage, this.app.view);
+    this.fullscreenButton.onResize(this.app.screen.width, this.app.screen.height);
 
     document.body.appendChild(this.app.view);
     this.app.renderer.on("resize", this.handleResize);
@@ -34,6 +38,8 @@ export abstract class BaseGame {
   }
 
   protected handleResize = (): void => {
+    this.fullscreenButton.onResize(this.app.screen.width, this.app.screen.height);
+
     if (this.currentScreen) {
       this.resizeScreen(this.currentScreen);
     }
@@ -63,6 +69,7 @@ export abstract class BaseGame {
       this.currentScreen = null;
     }
 
+    this.fullscreenButton.onDestroy();
     this.fpsCounter.onDestroy();
     this.app.destroy(true, { children: true });
   }
