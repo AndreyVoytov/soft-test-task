@@ -1,11 +1,13 @@
 ﻿import { Application, Assets, Container } from "pixi.js";
 import { Utils } from "../utils/Utils";
 import { AdaptiveScreen } from "../screens/AdaptiveScreen";
+import { FpsCounter } from "./FpsCounter";
 
 export abstract class BaseGame {
   private app: Application<HTMLCanvasElement>;
   private stageRoot: Container;
   private currentScreen: AdaptiveScreen | null = null;
+  private fpsCounter: FpsCounter;
 
   constructor() {
     this.app = new Application<HTMLCanvasElement>({
@@ -16,6 +18,9 @@ export abstract class BaseGame {
 
     this.stageRoot = new Container();
     this.app.stage.addChild(this.stageRoot);
+
+    this.fpsCounter = new FpsCounter(this.app.ticker, this.app.stage);
+
     document.body.appendChild(this.app.view);
     this.app.renderer.on("resize", this.handleResize);
   }
@@ -58,6 +63,7 @@ export abstract class BaseGame {
       this.currentScreen = null;
     }
 
+    this.fpsCounter.onDestroy();
     this.app.destroy(true, { children: true });
   }
 }
