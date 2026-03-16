@@ -6,4 +6,8 @@ export const Images = {
   "fullscreen": "common/fullscreen_button.png",
   "fullscreen-off": "common/fullscreen_off_button.png",
   "back_button": "common/back_button.png",
+  "minigame3-bg": "minigame3/bg.jpg",
+  "minigame3-particle1": "minigame3/particle.png",
+  "minigame3-particle2": "minigame3/particle2.png",
+  "minigame3-particle3": "minigame3/particle3.png",
 } as const;

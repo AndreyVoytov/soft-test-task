@@ -5,6 +5,7 @@ import { Config } from "./Config";
 
 type HeaderParams = {
   onBack: () => void;
+  title?: string;
 };
 
 // all values in config are ratios to the smaller screen side (width or height)
@@ -31,7 +32,7 @@ export class Header extends Container {
 
     this.bg = new Graphics();
 
-    this.title = new Text("Magic Words", {
+    this.title = new Text(params.title ?? "Magic Words", {
       fill: 0x8f8f8f,
       fontFamily: "Arial",
       fontSize: 36,

@@ -2,6 +2,7 @@ import { Images } from "../assets";
 import { LoadingScreen } from "../screens/LoadingScreen";
 import { MenuScreen, type MinigameId } from "../screens/MenuScreen";
 import { Minigame2Screen } from "../screens/Minigame2Screen";
+import { Minigame3Screen } from "../screens/Minigame3Screen";
 import { BaseGame } from "./BaseGame";
 
 export class Game extends BaseGame {
@@ -14,7 +15,11 @@ export class Game extends BaseGame {
     const loadingScreen = new LoadingScreen();
     this.setCurrentScreen(loadingScreen);
 
-    const loadingPromise = this.loadAssets(Object.values(Images));
+    const initialAssets = Object.entries(Images)
+      .filter(([key]) => !key.startsWith("minigame3-"))
+      .map(([, path]) => path);
+
+    const loadingPromise = this.loadAssets(initialAssets);
     await loadingScreen.spinUntil(loadingPromise);
   }
 
@@ -34,9 +39,8 @@ export class Game extends BaseGame {
         this.setCurrentScreen(new Minigame2Screen({ onBack: () => this.showMenu() }));
         break;
       case "minigame3":
-        // TODO: open minigame3 screen
+        this.setCurrentScreen(new Minigame3Screen({ onBack: () => this.showMenu() }));
         break;
     }
   }
 }
-

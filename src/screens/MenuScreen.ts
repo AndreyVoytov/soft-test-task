@@ -7,13 +7,20 @@ import { Utils } from "../utils/Utils";
 //all values in config are ratios to the smaller screen side (width or height)
 const buttonConfig = {
   width: 0.7,
+  buttonX: 0.1,
   gap: 0.23,
-  iconX: -0.22,
-  labelX: 0.065,
+  iconX: -0.32,
+  labelX: 0.02,
   labelWidth: 0.35,
 } as const;
 
 export type MinigameId = "minigame1" | "minigame2" | "minigame3";
+
+const minigameTitles: Record<MinigameId, string> = {
+  minigame1: "Ace of Shadows",
+  minigame2: "Magic Words",
+  minigame3: "Phoenix Flame",
+};
 
 type MenuButton = {
   id: MinigameId;
@@ -44,13 +51,13 @@ export class MenuScreen extends AdaptiveScreen {
     const minSide = Math.min(width, height);
     const baseTexture = this.buttons[0].buttonSprite.texture;
 
-    let buttonScale = minSide * buttonConfig.width / baseTexture.width;
+    let buttonScale = (minSide * buttonConfig.width) / baseTexture.width;
     let stepY = Math.round(minSide * buttonConfig.gap);
     const centerIndex = 1;
 
     this.buttons.forEach((button, index) => {
       const y = height * 0.5 + (index - centerIndex) * stepY;
-      button.cont.position.set(width * 0.5, y);
+      button.cont.position.set(width * 0.5 + buttonConfig.buttonX * minSide, y);
 
       button.buttonSprite.scale.set(buttonScale);
 
@@ -73,7 +80,7 @@ export class MenuScreen extends AdaptiveScreen {
     const icon = new CustomSprite(Images[`${id}-icon`]);
     icon.anchor.set(0.5);
 
-    const label = new Text(id, {
+    const label = new Text(minigameTitles[id], {
       fill: 0xffffff,
       fontFamily: "Arial",
       fontSize: 80,
