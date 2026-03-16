@@ -1,3 +1,4 @@
+/** Reusable circular spinner component with resize-aware drawing and minimum spin duration. */
 import { Container, Graphics } from "pixi.js";
 
 //all values in config are ratios to the smaller screen side (width or height)
@@ -92,3 +93,4 @@ export class Spinner extends Container {
     await trackedTask;
   }
 }
+

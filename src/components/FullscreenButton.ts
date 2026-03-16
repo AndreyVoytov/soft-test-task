@@ -1,4 +1,5 @@
-﻿import { Container, Sprite, Texture } from "pixi.js";
+/** Top-right fullscreen toggle button with auto-sync to browser fullscreen state. */
+import { Container, Sprite, Texture } from "pixi.js";
 import { Images } from "../assets";
 import { Utils } from "../utils/Utils";
 
@@ -64,3 +65,4 @@ export class FullscreenButton {
     this.sprite.texture = Texture.from(Utils.assetPathToUrl(path));
   }
 }
+

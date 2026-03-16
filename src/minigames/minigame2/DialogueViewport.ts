@@ -1,3 +1,4 @@
+/** Scrollable dialogue viewport with bubble rendering, avatars, and drag/wheel scrollbar control. */
 import {
   Container,
   Graphics,
@@ -425,3 +426,4 @@ export class DialogueViewport extends Container {
     );
   }
 }
+

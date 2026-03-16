@@ -1,3 +1,4 @@
+/** Ace of Shadows: two card stacks with continuous top-card transfer animation. */
 import { Container, Sprite, Texture, Ticker } from "pixi.js";
 import { Images } from "../assets";
 import { Header } from "../minigames/minigame2/Header";
@@ -315,5 +316,6 @@ export class Minigame1Screen extends AdaptiveScreen {
     return min + Math.random() * (max - min);
   }
 }
+
 
 

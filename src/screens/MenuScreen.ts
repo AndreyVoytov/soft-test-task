@@ -1,4 +1,5 @@
-﻿import { Container, Sprite, Text } from "pixi.js";
+/** Main menu screen with three minigame buttons and adaptive layout. */
+import { Container, Sprite, Text } from "pixi.js";
 import { Images } from "../assets";
 import { AdaptiveScreen } from "./AdaptiveScreen";
 import { CustomSprite } from "../components/CustomSprite";
@@ -100,3 +101,4 @@ export class MenuScreen extends AdaptiveScreen {
     return { id, cont, buttonSprite, icon, label };
   }
 }
+

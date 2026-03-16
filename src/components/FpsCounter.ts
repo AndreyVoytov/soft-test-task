@@ -1,4 +1,5 @@
-﻿import { Container, Text, TextStyle, Ticker } from "pixi.js";
+/** Lightweight FPS overlay that samples ticker performance at a fixed refresh interval. */
+import { Container, Text, TextStyle, Ticker } from "pixi.js";
 
 export class FpsCounter {
   private readonly ticker: Ticker;
@@ -41,3 +42,4 @@ export class FpsCounter {
     this.text.visible = true;
   };
 }
+

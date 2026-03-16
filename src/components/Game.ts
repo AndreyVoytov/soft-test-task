@@ -1,3 +1,4 @@
+/** App entry coordinator: startup loading, menu routing, and minigame screen opening. */
 import { Images } from "../assets";
 import { LoadingScreen } from "../screens/LoadingScreen";
 import { MenuScreen, type MinigameId } from "../screens/MenuScreen";
@@ -45,3 +46,4 @@ export class Game extends BaseGame {
     }
   }
 }
+

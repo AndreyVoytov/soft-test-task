@@ -1,3 +1,4 @@
+/** Shared top header used by minigames: title, back button, and optional progress counter. */
 import { Container, Graphics, Text } from "pixi.js";
 import { Images } from "../../assets";
 import { CustomSprite } from "../../components/CustomSprite";
@@ -101,3 +102,4 @@ export class Header extends Container {
     this.progress.visible = visible;
   }
 }
+

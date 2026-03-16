@@ -1,3 +1,4 @@
+/** Phoenix Flame: particle-only fire effect demo with capped active sprites. */
 import { Assets, BLEND_MODES, Container, Sprite, Texture, Ticker, Text } from "pixi.js";
 import { Images } from "../assets";
 import { Spinner } from "../components/Spinner";
@@ -251,3 +252,4 @@ export class Minigame3Screen extends AdaptiveScreen {
     return min + Math.random() * (max - min);
   }
 }
+

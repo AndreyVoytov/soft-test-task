@@ -1,3 +1,4 @@
+/** Magic Words: dialogue screen orchestrating header, viewport, loading, and progression. */
 import {
   Container,
   Graphics,
@@ -200,3 +201,4 @@ export class Minigame2Screen extends AdaptiveScreen {
     super.destroy(options);
   }
 }
+

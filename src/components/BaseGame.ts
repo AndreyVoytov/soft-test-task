@@ -1,4 +1,5 @@
-﻿import { Application, Assets, Container } from "pixi.js";
+/** Core Pixi application host: lifecycle, screen switching, resize, and shared overlays. */
+import { Application, Assets, Container } from "pixi.js";
 import { Utils } from "../utils/Utils";
 import { AdaptiveScreen } from "../screens/AdaptiveScreen";
 import { FpsCounter } from "./FpsCounter";
@@ -74,3 +75,4 @@ export abstract class BaseGame {
     this.app.destroy(true, { children: true });
   }
 }
+

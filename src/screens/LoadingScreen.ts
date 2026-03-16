@@ -1,3 +1,4 @@
+/** Initial loading screen with brand badge and shared spinner while core assets are loading. */
 import { Graphics, Text, TextStyle } from "pixi.js";
 import { Spinner } from "../components/Spinner";
 import { AdaptiveScreen } from "./AdaptiveScreen";
@@ -65,4 +66,5 @@ export class LoadingScreen extends AdaptiveScreen {
     this.titleBadge.endFill();
   }
 }
+
 
