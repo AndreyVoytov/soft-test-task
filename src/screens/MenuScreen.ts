@@ -1,8 +1,8 @@
 ﻿import { Container, Sprite, Text } from "pixi.js";
 import { Images } from "../assets";
 import { AdaptiveScreen } from "./AdaptiveScreen";
-import { CustomSprite } from "../CustomSprite";
-import { Utils } from "../Utils";
+import { CustomSprite } from "../components/CustomSprite";
+import { Utils } from "../utils/Utils";
 
 //all values in config are ratios to the smaller screen side (width or height)
 const buttonConfig = {

@@ -1,6 +1,6 @@
 import { Graphics, Text, TextStyle } from "pixi.js";
 import { AdaptiveScreen } from "./AdaptiveScreen";
-import { Utils } from "../Utils";
+import { Utils } from "../utils/Utils";
 
 //all values in config are ratios to the smaller screen side (width or height)
 const spinnerConfig = {

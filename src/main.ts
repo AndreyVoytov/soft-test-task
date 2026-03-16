@@ -1,4 +1,4 @@
-import { Game } from "./Game";
+import { Game } from "./components/Game";
 import "./style.css";
 
 const game = new Game();

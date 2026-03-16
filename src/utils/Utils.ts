@@ -11,6 +11,6 @@ export class Utils {
   }
 
   static assetPathToUrl(assetPath: string): string {
-    return new URL(`../images/${assetPath}`, import.meta.url).href;
+    return new URL(`../../images/${assetPath}`, import.meta.url).href;
   }
 }

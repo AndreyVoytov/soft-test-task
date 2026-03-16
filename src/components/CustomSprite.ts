@@ -1,5 +1,5 @@
 import { Sprite, Texture } from 'pixi.js';
-import { Utils } from './Utils';
+import { Utils } from '../utils/Utils';
 
 export class CustomSprite extends Sprite {
     constructor(image:string) {
