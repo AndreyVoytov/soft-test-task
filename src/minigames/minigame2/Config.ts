@@ -1,5 +1,5 @@
-﻿import { Images } from "../assets";
-import { Utils } from "../utils/Utils";
+﻿import { Images } from "../../assets";
+import { Utils } from "../../utils/Utils";
 import { DialogueMessage, ImageSegment, TextSegment } from "./Types";
 
 export class Config {

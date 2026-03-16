@@ -11,10 +11,10 @@ import {
 import { Images } from "../assets";
 import { CustomSprite } from "../components/CustomSprite";
 import { Spinner } from "../components/Spinner";
-import { BubbleFactory } from "../minigame2/BubbleFactory";
-import { Config } from "../minigame2/Config";
-import { DialogueStore } from "../minigame2/DialogueStore";
-import type { DialogueMessage } from "../minigame2/Types";
+import { BubbleFactory } from "../minigames/minigame2/BubbleFactory";
+import { Config } from "../minigames/minigame2/Config";
+import { DialogueStore } from "../minigames/minigame2/DialogueStore";
+import type { DialogueMessage } from "../minigames/minigame2/Types";
 import { AdaptiveScreen } from "./AdaptiveScreen";
 
 export class Minigame2Screen extends AdaptiveScreen {
