@@ -1,4 +1,4 @@
-﻿export abstract class SegmentBase {
+export abstract class SegmentBase {
   abstract readonly type: "text" | "image";
 }
 
@@ -22,10 +22,13 @@ export class ImageSegment extends SegmentBase {
 }
 
 export type Segment = TextSegment | ImageSegment;
+export type DialogueSide = "left" | "right";
 
 export class DialogueMessage {
   constructor(
     public readonly speaker: string,
     public readonly segments: Segment[],
+    public readonly avatarUrl?: string,
+    public readonly side?: DialogueSide,
   ) {}
 }

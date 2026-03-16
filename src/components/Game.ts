@@ -1,4 +1,4 @@
-﻿import { Images } from "../assets";
+import { Images } from "../assets";
 import { LoadingScreen } from "../screens/LoadingScreen";
 import { MenuScreen, type MinigameId } from "../screens/MenuScreen";
 import { Minigame2Screen } from "../screens/Minigame2Screen";
@@ -31,7 +31,7 @@ export class Game extends BaseGame {
         // TODO: open minigame1 screen
         break;
       case "minigame2":
-        this.setCurrentScreen(new Minigame2Screen());
+        this.setCurrentScreen(new Minigame2Screen({ onBack: () => this.showMenu() }));
         break;
       case "minigame3":
         // TODO: open minigame3 screen
@@ -39,3 +39,4 @@ export class Game extends BaseGame {
     }
   }
 }
+

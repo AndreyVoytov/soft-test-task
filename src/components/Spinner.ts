@@ -20,8 +20,8 @@ export class Spinner extends Container {
   private readonly base: Graphics;
   private readonly head: Graphics;
   private spinAngle = 0;
-  private readonly defaultMinDurationMs = 1000;
-  private readonly defaultSpeedRadPerSec = 7;
+  private readonly minDurationMs = 1000;
+  private readonly speedRadPerSec = 7;
 
   constructor() {
     super();
@@ -60,13 +60,7 @@ export class Spinner extends Container {
 
   async spinUntil(
     task: Promise<unknown>,
-    options?: {
-      minDurationMs?: number;
-      speedRadPerSec?: number;
-    },
   ): Promise<void> {
-    const minDurationMs = options?.minDurationMs ?? this.defaultMinDurationMs;
-    const speedRadPerSec = options?.speedRadPerSec ?? this.defaultSpeedRadPerSec;
 
     const startedAt = performance.now();
     let prevFrameAt = startedAt;
@@ -82,9 +76,9 @@ export class Spinner extends Container {
         const deltaSec = (now - prevFrameAt) / 1000;
         prevFrameAt = now;
 
-        this.update(deltaSec, speedRadPerSec);
+        this.update(deltaSec, this.speedRadPerSec);
 
-        if (taskDone && now - startedAt >= minDurationMs) {
+        if (taskDone && now - startedAt >= this.minDurationMs) {
           resolve();
           return;
         }

@@ -2,17 +2,25 @@ import {
   Container,
   Graphics,
   Rectangle,
+  Sprite,
   Text,
+  type FederatedEvent,
   type FederatedPointerEvent,
   type FederatedWheelEvent,
 } from "pixi.js";
+import { Images } from "../assets";
+import { CustomSprite } from "../components/CustomSprite";
+import { Spinner } from "../components/Spinner";
 import { BubbleFactory } from "../minigame2/BubbleFactory";
 import { Config } from "../minigame2/Config";
-import { DialogueParser } from "../minigame2/DialogueParser";
+import { DialogueStore } from "../minigame2/DialogueStore";
 import type { DialogueMessage } from "../minigame2/Types";
 import { AdaptiveScreen } from "./AdaptiveScreen";
 
 export class Minigame2Screen extends AdaptiveScreen {
+  private readonly onBack: () => void;
+  private readonly backButton: CustomSprite;
+  private readonly spinner: Spinner;
   private readonly title: Text;
   private readonly progress: Text;
   private readonly status: Text;
@@ -27,6 +35,7 @@ export class Minigame2Screen extends AdaptiveScreen {
   private scrollTop = 0;
   private scrollMax = 0;
   private contentHeight = 0;
+  private isLoading = false;
 
   private viewportWidth = 0;
   private viewportHeight = 0;
@@ -43,6 +52,8 @@ export class Minigame2Screen extends AdaptiveScreen {
   private speakerFontSize = 0;
   private textFontSize = 0;
   private emojiSize = 0;
+  private avatarSize = 0;
+  private avatarGap = 0;
 
   private scrollBarWidth = 0;
   private scrollBarGap = 0;
@@ -57,8 +68,10 @@ export class Minigame2Screen extends AdaptiveScreen {
   private dragMoved = false;
   private ignoreNextTap = false;
 
-  constructor() {
+  constructor(params?: { onBack?: () => void }) {
     super();
+
+    this.onBack = params?.onBack ?? (() => {});
 
     this.title = new Text("Magic Words", {
       fill: 0x8f8f8f,
@@ -86,6 +99,14 @@ export class Minigame2Screen extends AdaptiveScreen {
     });
     this.status.anchor.set(0.5);
 
+    this.backButton = new CustomSprite(Images.back_button);
+    this.backButton.anchor.set(0, 0);
+    this.backButton.eventMode = "static";
+    this.backButton.cursor = "pointer";
+    this.backButton.on("pointertap", this.handleBackTap);
+
+    this.spinner = new Spinner();
+
     this.viewport = new Container();
     this.viewportMask = new Graphics();
     this.bubblesRoot = new Container();
@@ -104,7 +125,16 @@ export class Minigame2Screen extends AdaptiveScreen {
     this.on("pointerupoutside", this.handlePointerUp);
     this.on("pointercancel", this.handlePointerUp);
 
-    this.addChild(this.title, this.progress, this.viewport, this.scrollTrack, this.scrollThumb, this.status);
+    this.addChild(
+      this.title,
+      this.progress,
+      this.viewport,
+      this.scrollTrack,
+      this.scrollThumb,
+      this.status,
+      this.spinner,
+      this.backButton,
+    );
 
     void this.loadDialogue();
   }
@@ -120,6 +150,12 @@ export class Minigame2Screen extends AdaptiveScreen {
     this.title.style.fontSize = Math.max(20, Math.round(minSide * 0.06));
     this.title.position.set(width * 0.5, topPadding);
 
+    const backSize = Math.max(30, Math.round(minSide * 0.11));
+    const backMargin = Math.max(8, Math.round(minSide * 0.02));
+    this.backButton.position.set(backMargin, backMargin);
+    this.backButton.width = backSize;
+    this.backButton.height = backSize;
+
     this.progress.style.fontSize = Math.max(14, Math.round(minSide * 0.03));
     this.progress.position.set(
       width * 0.5,
@@ -129,12 +165,16 @@ export class Minigame2Screen extends AdaptiveScreen {
     const viewportTop = this.progress.y + this.progress.height + topPadding;
     const viewportHeight = Math.max(40, height - viewportTop - topPadding);
 
+    this.spinner.resize(width, height, 0);
+
     this.bubbleGap = Math.max(Config.minGap, Math.round(minSide * Config.bubbleGapRatio));
     this.bubblePadding = Math.max(Config.minPadding, Math.round(minSide * Config.bubblePaddingRatio));
     this.bubbleRadius = Math.round(minSide * Config.bubbleRadiusRatio);
     this.speakerFontSize = Math.max(Config.minSpeakerSize, Math.round(minSide * Config.speakerSizeRatio));
     this.textFontSize = Math.max(Config.minTextSize, Math.round(minSide * Config.textSizeRatio));
     this.emojiSize = Math.max(Config.minEmojiSize, Math.round(minSide * Config.emojiSizeRatio));
+    this.avatarSize = Math.max(28, Math.round(minSide * 0.08));
+    this.avatarGap = Math.max(8, Math.round(minSide * 0.015));
 
     this.scrollBarWidth = Math.max(6, Math.round(minSide * 0.012));
     this.scrollBarGap = Math.max(6, Math.round(minSide * 0.008));
@@ -146,7 +186,8 @@ export class Minigame2Screen extends AdaptiveScreen {
       120,
       width - sidePadding * 2 - this.scrollBarWidth - this.scrollBarGap,
     );
-    this.bubbleWidth = Math.min(Math.round(minSide * Config.bubbleWidthRatio), this.viewportContentWidth);
+    const maxBubbleWidth = Math.max(80, this.viewportContentWidth - this.avatarSize - this.avatarGap);
+    this.bubbleWidth = Math.min(Math.round(minSide * Config.bubbleWidthRatio), maxBubbleWidth);
 
     this.viewport.position.set(this.viewportX, this.viewportY);
     this.viewportMask
@@ -159,12 +200,26 @@ export class Minigame2Screen extends AdaptiveScreen {
     this.status.position.set(width * 0.5, viewportTop + viewportHeight * 0.5);
     this.hitArea = new Rectangle(0, 0, width, height);
 
+    if (this.isLoading) {
+      this.viewport.visible = false;
+      this.progress.visible = false;
+      this.scrollTrack.visible = false;
+      this.scrollThumb.visible = false;
+      this.status.visible = true;
+      this.status.text = "Loading dialogue...";
+      this.spinner.visible = true;
+      return;
+    }
+
+    this.spinner.visible = false;
+
     if (this.messages.length === 0) {
       this.viewport.visible = false;
       this.progress.visible = false;
       this.scrollTrack.visible = false;
       this.scrollThumb.visible = false;
       this.status.visible = true;
+      this.status.text = "No dialogue available";
       return;
     }
 
@@ -175,14 +230,13 @@ export class Minigame2Screen extends AdaptiveScreen {
   }
 
   private rebuildVisibleBubbles(stickToBottom: boolean): void {
-    const leftX = 0;
-    const rightX = this.viewportContentWidth - this.bubbleWidth;
     let currentY = 0;
 
     this.bubblesRoot.removeChildren().forEach((child) => child.destroy({ children: true }));
 
     const visibleMessages = this.messages.slice(0, this.visibleCount);
     visibleMessages.forEach((message, index) => {
+      const isLeft = message.side === "left";
       const bubble = BubbleFactory.createDialogueBubble(message, {
         maxContentWidth: this.bubbleWidth - this.bubblePadding * 2,
         bubbleWidth: this.bubbleWidth,
@@ -193,9 +247,27 @@ export class Minigame2Screen extends AdaptiveScreen {
         emojiSize: this.emojiSize,
       });
 
-      bubble.position.set(index % 2 === 0 ? leftX : rightX, currentY);
+      const avatar = this.createAvatarNode(message);
+      const avatarOffset = avatar ? this.avatarSize + this.avatarGap : 0;
+      const rowHeight = Math.max(bubble.height, avatar ? this.avatarSize : 0);
+
+      bubble.position.set(
+        isLeft
+          ? avatarOffset
+          : this.viewportContentWidth - avatarOffset - this.bubbleWidth,
+        currentY + (rowHeight - bubble.height) * 0.5,
+      );
+
+      if (avatar) {
+        avatar.position.set(
+          isLeft ? 0 : this.viewportContentWidth - this.avatarSize,
+          currentY + (rowHeight - this.avatarSize) * 0.5,
+        );
+        this.bubblesRoot.addChild(avatar);
+      }
+
       this.bubblesRoot.addChild(bubble);
-      currentY += bubble.height + this.bubbleGap;
+      currentY += rowHeight + this.bubbleGap;
     });
 
     this.contentHeight = Math.max(0, currentY - this.bubbleGap);
@@ -208,6 +280,32 @@ export class Minigame2Screen extends AdaptiveScreen {
 
     this.applyScrollPosition();
     this.drawScrollbar();
+  }
+
+  private createAvatarNode(message: DialogueMessage): Container | null {
+    if (!message.avatarUrl) {
+      return null;
+    }
+
+    const root = new Container();
+    const radius = this.avatarSize * 0.5;
+
+    const sprite = Sprite.from(message.avatarUrl);
+    sprite.width = this.avatarSize;
+    sprite.height = this.avatarSize;
+
+    const mask = new Graphics();
+    mask.beginFill(0xffffff, 1);
+    mask.drawCircle(radius, radius, radius);
+    mask.endFill();
+
+    const border = new Graphics();
+    border.lineStyle(2, 0xffffff, 0.95);
+    border.drawCircle(radius, radius, radius - 1);
+
+    sprite.mask = mask;
+    root.addChild(sprite, mask, border);
+    return root;
   }
 
   private applyScrollPosition(): void {
@@ -250,13 +348,6 @@ export class Minigame2Screen extends AdaptiveScreen {
   }
 
   private refreshStatus(): void {
-    if (this.messages.length === 0) {
-      this.progress.visible = false;
-      this.status.visible = true;
-      this.status.text = "No dialogue available";
-      return;
-    }
-
     this.progress.visible = true;
     this.progress.text = `${Math.min(this.visibleCount, this.messages.length)}/${this.messages.length}`;
 
@@ -276,13 +367,18 @@ export class Minigame2Screen extends AdaptiveScreen {
       return;
     }
 
-    if (this.messages.length === 0 || this.visibleCount >= this.messages.length) {
+    if (this.isLoading || this.messages.length === 0 || this.visibleCount >= this.messages.length) {
       return;
     }
 
     this.visibleCount += 1;
     this.rebuildVisibleBubbles(true);
     this.refreshStatus();
+  };
+
+  private handleBackTap = (event: FederatedEvent): void => {
+    event.stopPropagation();
+    this.onBack();
   };
 
   private handleWheel = (event: FederatedWheelEvent): void => {
@@ -310,7 +406,7 @@ export class Minigame2Screen extends AdaptiveScreen {
   };
 
   private handlePointerDown = (event: FederatedPointerEvent): void => {
-    if (this.scrollMax <= 0) {
+    if (this.scrollMax <= 0 || this.isLoading) {
       return;
     }
 
@@ -400,22 +496,23 @@ export class Minigame2Screen extends AdaptiveScreen {
   }
 
   private async loadDialogue(): Promise<void> {
-    try {
-      const response = await fetch(Config.endpoint);
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
+    const shouldShowSpinner = !DialogueStore.hasCache();
+    this.isLoading = shouldShowSpinner;
 
-      const payload: unknown = await response.json();
-      const parsed = DialogueParser.parsePayload(payload);
-      this.messages = parsed.length > 0 ? parsed : Config.fallbackMessages;
-      this.visibleCount = 0;
-      this.scrollTop = 0;
-    } catch {
-      this.messages = Config.fallbackMessages;
-      this.visibleCount = 0;
-      this.scrollTop = 0;
+    if (!this.destroyed) {
+      this.resize(this.viewportWidth, this.viewportHeight);
     }
+
+    const loadTask = DialogueStore.getMessages();
+    if (shouldShowSpinner) {
+      await this.spinner.spinUntil(loadTask);
+    }
+
+    const loadedMessages = await loadTask;
+    this.messages = loadedMessages;
+    this.visibleCount = 0;
+    this.scrollTop = 0;
+    this.isLoading = false;
 
     if (!this.destroyed) {
       this.resize(this.viewportWidth, this.viewportHeight);
@@ -430,9 +527,11 @@ export class Minigame2Screen extends AdaptiveScreen {
     this.off("pointerup", this.handlePointerUp);
     this.off("pointerupoutside", this.handlePointerUp);
     this.off("pointercancel", this.handlePointerUp);
+    this.backButton.off("pointertap", this.handleBackTap);
     super.destroy(options);
   }
 }
+
 
 
 
