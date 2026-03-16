@@ -1,10 +1,10 @@
 ﻿import { Images } from "../assets";
 import { LoadingScreen } from "../screens/LoadingScreen";
 import { MenuScreen, type MinigameId } from "../screens/MenuScreen";
+import { Minigame2Screen } from "../screens/Minigame2Screen";
 import { BaseGame } from "./BaseGame";
 
 export class Game extends BaseGame {
-
   async start(): Promise<void> {
     await this.showLoadingAndLoadAssets();
     this.showMenu();
@@ -31,7 +31,7 @@ export class Game extends BaseGame {
         // TODO: open minigame1 screen
         break;
       case "minigame2":
-        // TODO: open minigame2 screen
+        this.setCurrentScreen(new Minigame2Screen());
         break;
       case "minigame3":
         // TODO: open minigame3 screen
