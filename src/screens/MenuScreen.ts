@@ -1,12 +1,23 @@
-import { Container, Sprite, Text, Texture } from "pixi.js";
-import { MENU_ASSETS } from "../assets";
+﻿import { Container, Sprite, Text } from "pixi.js";
+import { Images } from "../assets";
 import { AdaptiveScreen } from "./AdaptiveScreen";
+import { CustomSprite } from "../CustomSprite";
+import { Utils } from "../Utils";
+
+//all values in config are ratios to the smaller screen side (width or height)
+const buttonConfig = {
+  width: 0.7,
+  gap: 0.23,
+  iconX: -0.22,
+  labelX: 0.065,
+  labelWidth: 0.35,
+} as const;
 
 export type MinigameId = "minigame1" | "minigame2" | "minigame3";
 
 type MenuButton = {
   id: MinigameId;
-  root: Container;
+  cont: Container;
   buttonSprite: Sprite;
   icon: Sprite;
   label: Text;
@@ -15,97 +26,70 @@ type MenuButton = {
 export class MenuScreen extends AdaptiveScreen {
   private readonly buttons: MenuButton[] = [];
   private readonly onSelect: (id: MinigameId) => void;
-  private readonly buttonAspect: number;
 
   constructor(params: { onSelect: (id: MinigameId) => void }) {
     super();
-    const buttonTexture = Texture.from(MENU_ASSETS.button);
-    const iconTextures: Record<`${MinigameId}-icon`, Texture> = {
-      "minigame1-icon": Texture.from(MENU_ASSETS["minigame1-icon"]),
-      "minigame2-icon": Texture.from(MENU_ASSETS["minigame2-icon"]),
-      "minigame3-icon": Texture.from(MENU_ASSETS["minigame3-icon"]),
-    };
 
     this.onSelect = params.onSelect;
-    this.buttonAspect = buttonTexture.height / buttonTexture.width;
-
     const ids: MinigameId[] = ["minigame1", "minigame2", "minigame3"];
 
     for (const id of ids) {
-      const root = new Container();
-      root.eventMode = "static";
-      root.cursor = "pointer";
-
-      const buttonSprite = new Sprite(buttonTexture);
-      buttonSprite.anchor.set(0.5);
-
-      const icon = new Sprite(iconTextures[`${id}-icon`]);
-      icon.anchor.set(0.5);
-
-      const label = new Text(id, {
-        fill: 0xffffff,
-        fontFamily: "Arial",
-        fontSize: 34,
-        fontWeight: "700",
-      });
-      label.anchor.set(0.5);
-
-      root.addChild(buttonSprite, icon, label);
-      root.on("pointertap", () => this.onSelect(id));
-      root.on("pointerover", () => {
-        root.scale.set(1.03);
-      });
-      root.on("pointerout", () => {
-        root.scale.set(1);
-      });
-
-      this.buttons.push({ id, root, buttonSprite, icon, label });
-      this.addChild(root);
+      const button = this.createMenuButton(id);
+      this.buttons.push(button);
+      this.addChild(button.cont);
     }
   }
 
   resize(width: number, height: number): void {
-    const portrait = height >= width;
-    const sidePadding = Math.max(12, Math.round(Math.min(width, height) * 0.06));
-    const topBottomPadding = Math.max(16, Math.round(Math.min(width, height) * 0.08));
-    const availableWidth = Math.max(1, width - sidePadding * 2);
-    const availableHeight = Math.max(1, height - topBottomPadding * 2);
+    const minSide = Math.min(width, height);
+    const baseTexture = this.buttons[0].buttonSprite.texture;
 
-    const desiredWidth = portrait
-      ? Math.min(availableWidth, 420)
-      : Math.min(availableWidth * 0.72, 420);
+    let buttonScale = minSide * buttonConfig.width / baseTexture.width;
+    let stepY = Math.round(minSide * buttonConfig.gap);
+    const centerIndex = 1;
 
-    let buttonWidth = desiredWidth;
-    let buttonHeight = Math.max(20, buttonWidth * this.buttonAspect);
-    let gap = portrait ? Math.max(8, height * 0.018) : Math.max(6, height * 0.015);
+    this.buttons.forEach((button, index) => {
+      const y = height * 0.5 + (index - centerIndex) * stepY;
+      button.cont.position.set(width * 0.5, y);
 
-    const totalHeight = this.buttons.length * buttonHeight + (this.buttons.length - 1) * gap;
-    if (totalHeight > availableHeight) {
-      const scale = availableHeight / totalHeight;
-      buttonWidth *= scale;
-      buttonHeight *= scale;
-      gap *= scale;
-    }
+      button.buttonSprite.scale.set(buttonScale);
 
-    const blockHeight = this.buttons.length * buttonHeight + (this.buttons.length - 1) * gap;
-    const startY = (height - blockHeight) * 0.5 + buttonHeight * 0.5;
+      button.icon.scale.set(buttonScale);
+      button.icon.position.set(minSide * buttonConfig.iconX, 0);
 
-    for (let i = 0; i < this.buttons.length; i++) {
-      const button = this.buttons[i];
-      const y = startY + i * (buttonHeight + gap);
-      const root = button.root;
-      root.position.set(width * 0.5, y);
+      button.label.position.set(minSide * buttonConfig.labelX, 0);
+      Utils.rescaleTextToFitWidth(button.label, minSide * buttonConfig.labelWidth);
+    });
+  }
 
-      button.buttonSprite.width = buttonWidth;
-      button.buttonSprite.height = buttonHeight;
+  private createMenuButton(id: MinigameId): MenuButton {
+    const cont = new Container();
+    cont.eventMode = "static";
+    cont.cursor = "pointer";
 
-      const iconSize = buttonHeight * 0.5;
-      button.icon.width = iconSize;
-      button.icon.height = iconSize;
-      button.icon.position.set(-buttonWidth * 0.33, 0);
+    const buttonSprite = new CustomSprite(Images.button);
+    buttonSprite.anchor.set(0.5);
 
-      button.label.style.fontSize = Math.max(12, Math.round(buttonHeight * 0.32));
-      button.label.position.set(buttonWidth * 0.08, 0);
-    }
+    const icon = new CustomSprite(Images[`${id}-icon`]);
+    icon.anchor.set(0.5);
+
+    const label = new Text(id, {
+      fill: 0xffffff,
+      fontFamily: "Arial",
+      fontSize: 80,
+      fontWeight: "700",
+    });
+    label.anchor.set(0.5);
+
+    cont.addChild(buttonSprite, icon, label);
+    cont.on("pointertap", () => this.onSelect(id));
+    cont.on("pointerover", () => {
+      cont.scale.set(1.03);
+    });
+    cont.on("pointerout", () => {
+      cont.scale.set(1);
+    });
+
+    return { id, cont, buttonSprite, icon, label };
   }
 }

@@ -2,6 +2,7 @@ import { Graphics, Text, TextStyle } from "pixi.js";
 import { AdaptiveScreen } from "./AdaptiveScreen";
 import { Utils } from "../Utils";
 
+//all values in config are ratios to the smaller screen side (width or height)
 const spinnerConfig = {
   radiusRatio: 0.05,
   thicknessRatio: 0.25,
@@ -44,7 +45,7 @@ export class LoadingScreen extends AdaptiveScreen {
       new TextStyle({
         fill: 0xffffff,
         fontFamily: "Arial",
-        fontSize: 42,
+        fontSize: 80,
         fontWeight: "700",
         letterSpacing: 2,
       }),
@@ -91,21 +92,21 @@ export class LoadingScreen extends AdaptiveScreen {
   }
 
   resize(width: number, height: number): void {
-    const minViewSide = Math.min(width, height);
-    const gap = Math.round(minViewSide * badgeConfig.gapRatio);
+    const minSide = Math.min(width, height);
+    const gap = Math.round(minSide * badgeConfig.gapRatio);
 
-    const spinnerRadius = minViewSide * spinnerConfig.radiusRatio;
+    const spinnerRadius = minSide * spinnerConfig.radiusRatio;
     const spinnerY = height * 0.5 - gap * 0.5 - spinnerRadius;
     this.spinnerBase.position.set(width * 0.5, spinnerY);
     this.spinnerHead.position.set(width * 0.5, spinnerY);
     this.drawSpinner(spinnerRadius);
     
-    const badgeWidth = Math.round(minViewSide * badgeConfig.widthRatio);
-    const badgeHeight = Math.round(minViewSide * badgeConfig.heightRatio);
+    const badgeWidth = Math.round(minSide * badgeConfig.widthRatio);
+    const badgeHeight = Math.round(minSide * badgeConfig.heightRatio);
     const badgeY = height * 0.5 + gap * 0.5 + badgeHeight * 0.5;
     this.drawBadge(width * 0.5, badgeY, badgeWidth, badgeHeight);
 
-    const titleWidth = Math.round(minViewSide * badgeConfig.textWidthRatio);
+    const titleWidth = Math.round(minSide * badgeConfig.textWidthRatio);
     this.title.position.set(width * 0.5, badgeY);
     Utils.rescaleTextToFitWidth(this.title, titleWidth);
   }

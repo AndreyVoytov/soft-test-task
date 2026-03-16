@@ -1,5 +1,6 @@
-import { Application, Assets, Container } from "pixi.js";
-import { MENU_ASSETS } from "./assets";
+﻿import { Application, Assets, Container } from "pixi.js";
+import { Images } from "./assets";
+import { Utils } from "./Utils";
 import { AdaptiveScreen } from "./screens/AdaptiveScreen";
 import { LoadingScreen } from "./screens/LoadingScreen";
 import { MenuScreen, type MinigameId } from "./screens/MenuScreen";
@@ -31,7 +32,7 @@ export class Game {
     const loadingScreen = new LoadingScreen();
     this.setCurrentScreen(loadingScreen);
 
-    const loadingPromise = this.loadAssets(Object.entries(MENU_ASSETS));
+    const loadingPromise = this.loadAssets(Object.values(Images));
     await loadingScreen.spinUntil(loadingPromise);
   }
 
@@ -56,11 +57,10 @@ export class Game {
     }
   }
 
-  //utility methods
-  private async loadAssets(entries: Array<[string, string]>): Promise<void> {
-    for (const entry of entries) {
-      const url = entry[1];
-      await Assets.load(url);
+  // utility methods
+  private async loadAssets(entries: readonly string[]): Promise<void> {
+    for (const assetPath of entries) {
+      await Assets.load(Utils.assetPathToUrl(assetPath));
     }
   }
 
@@ -96,5 +96,4 @@ export class Game {
 
     this.app.destroy(true, { children: true });
   }
-
 }

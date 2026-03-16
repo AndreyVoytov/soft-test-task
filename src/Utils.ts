@@ -1,4 +1,4 @@
-import { Text } from "pixi.js";
+﻿import { Text } from "pixi.js";
 
 export class Utils {
   static rescaleTextToFitWidth(text: Text, targetWidth: number): void {
@@ -8,5 +8,9 @@ export class Utils {
     }
 
     text.scale.set(targetWidth / baseWidth);
+  }
+
+  static assetPathToUrl(assetPath: string): string {
+    return new URL(`../images/${assetPath}`, import.meta.url).href;
   }
 }
