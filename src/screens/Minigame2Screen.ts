@@ -24,6 +24,7 @@ export class Minigame2Screen extends AdaptiveScreen {
   private readonly title: Text;
   private readonly progress: Text;
   private readonly status: Text;
+  private readonly headerBg: Graphics;
   private readonly dialogueBg: Graphics;
   private readonly viewport: Container;
   private readonly viewportMask: Graphics;
@@ -108,6 +109,7 @@ export class Minigame2Screen extends AdaptiveScreen {
     this.backButton.on("pointertap", this.handleBackTap);
 
     this.spinner = new Spinner();
+    this.headerBg = new Graphics();
     this.dialogueBg = new Graphics();
 
     this.viewport = new Container();
@@ -129,6 +131,7 @@ export class Minigame2Screen extends AdaptiveScreen {
     this.on("pointercancel", this.handlePointerUp);
 
     this.addChild(
+      this.headerBg,
       this.title,
       this.progress,
       this.dialogueBg,
@@ -170,6 +173,7 @@ export class Minigame2Screen extends AdaptiveScreen {
     const headerGap = Math.max(6, Math.round(width * 0.012));
     const viewportTop = this.progress.y + this.progress.height + headerGap;
     const viewportHeight = Math.max(40, height - viewportTop);
+    const headerBgHeight = Math.max(0, viewportTop);
     const dialogueBgHeight = Math.max(0, height - viewportTop);
 
     this.spinner.resize(width, height, 0);
@@ -195,9 +199,15 @@ export class Minigame2Screen extends AdaptiveScreen {
     const maxBubbleWidth = Math.max(80, this.viewportContentWidth - this.avatarSize - this.avatarGap);
     this.bubbleWidth = Math.min(Math.round(minSide * Config.bubbleWidthRatio), maxBubbleWidth);
 
+    this.headerBg
+      .clear()
+      .beginFill(0xffdeb8, 1)
+      .drawRect(0, 0, width, headerBgHeight)
+      .endFill();
+
     this.dialogueBg
       .clear()
-      .beginFill(0xff8c3a, 0.28)
+      .beginFill(0xe3eff4, 1)
       .drawRect(0, viewportTop, width, dialogueBgHeight)
       .endFill();
 
@@ -345,7 +355,7 @@ export class Minigame2Screen extends AdaptiveScreen {
     const w = this.scrollBarWidth;
 
     this.scrollTrack.clear();
-    this.scrollTrack.beginFill(0x111111, 0.18);
+    this.scrollTrack.beginFill(0xffffff, 0.75);
     this.scrollTrack.drawRoundedRect(x, y, w, h, w * 0.5);
     this.scrollTrack.endFill();
 
@@ -356,7 +366,7 @@ export class Minigame2Screen extends AdaptiveScreen {
     this.scrollThumbHeight = thumbHeight;
 
     this.scrollThumb.clear();
-    this.scrollThumb.beginFill(0xffffff, 0.75);
+    this.scrollThumb.beginFill(0x111111, 0.15);
     this.scrollThumb.drawRoundedRect(x, thumbY, w, thumbHeight, w * 0.5);
     this.scrollThumb.endFill();
   }
@@ -546,5 +556,9 @@ export class Minigame2Screen extends AdaptiveScreen {
     super.destroy(options);
   }
 }
+
+
+
+
 
 

@@ -51,7 +51,7 @@ export class BubbleFactory {
     content.position.set(params.bubblePadding, contentTop);
 
     const bubbleHeight = contentTop + contentHeight + params.bubblePadding;
-    bg.beginFill(0xfffdea, 0.98);
+    bg.beginFill(0xffffff, 0.98);
     bg.lineStyle(2, 0xced4da, 1);
     bg.drawRoundedRect(0, 0, params.bubbleWidth, bubbleHeight, params.bubbleRadius);
     bg.endFill();
@@ -129,5 +129,6 @@ export class BubbleFactory {
     return y + lineHeight;
   }
 }
+
 
 
