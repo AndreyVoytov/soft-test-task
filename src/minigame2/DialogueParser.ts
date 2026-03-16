@@ -81,7 +81,7 @@ export class DialogueParser {
             | undefined;
 
           if (key && url) {
-            map.set(key, this.normalizeImageUrl(url));
+            map.set(this.normalizeEmojiKey(key), this.normalizeImageUrl(url));
           }
         });
         continue;
@@ -90,7 +90,7 @@ export class DialogueParser {
       if (typeof candidate === "object" && candidate !== null) {
         Object.entries(candidate as Record<string, unknown>).forEach(([key, value]) => {
           if (typeof value === "string") {
-            map.set(key, this.normalizeImageUrl(value));
+            map.set(this.normalizeEmojiKey(key), this.normalizeImageUrl(value));
           }
         });
       }
@@ -254,10 +254,7 @@ export class DialogueParser {
     const key = this.normalizeSpeakerKey(speaker);
     const mapped = key ? speakerMetaMap.get(key) : undefined;
 
-    const avatarUrl = directUrl
-      ? this.normalizeImageUrl(directUrl)
-      : mapped?.avatarUrl;
-
+    const avatarUrl = directUrl ? this.normalizeImageUrl(directUrl) : mapped?.avatarUrl;
     const side = directSide ?? mapped?.side ?? "right";
 
     return { avatarUrl, side };
@@ -308,6 +305,10 @@ export class DialogueParser {
 
     const normalized = value.trim().toLowerCase();
     return normalized.length > 0 ? normalized : null;
+  }
+
+  private static normalizeEmojiKey(value: string): string {
+    return value.trim().toLowerCase();
   }
 
   private static normalizeImageUrl(rawUrl: string): string {
@@ -361,11 +362,12 @@ export class DialogueParser {
     }
 
     const segments: Segment[] = [];
-    const pattern = /:([a-zA-Z0-9_-]+):/g;
+    const pattern = /(:([a-zA-Z0-9_-]+):)|(\{([a-zA-Z0-9_-]+)\})/g;
     let lastIndex = 0;
 
     for (let match = pattern.exec(text); match !== null; match = pattern.exec(text)) {
-      const [rawToken, tokenId] = match;
+      const rawToken = match[0];
+      const tokenId = this.normalizeEmojiKey(match[2] || match[4] || "");
       const start = match.index;
 
       if (start > lastIndex) {
@@ -375,8 +377,6 @@ export class DialogueParser {
       const url = emojiMap.get(tokenId);
       if (url) {
         segments.push(new ImageSegment(url, tokenId));
-      } else {
-        segments.push(new TextSegment(rawToken));
       }
 
       lastIndex = start + rawToken.length;
@@ -389,4 +389,5 @@ export class DialogueParser {
     return segments.length > 0 ? segments : [new TextSegment(text)];
   }
 }
+
 

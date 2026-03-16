@@ -24,6 +24,7 @@ export class Minigame2Screen extends AdaptiveScreen {
   private readonly title: Text;
   private readonly progress: Text;
   private readonly status: Text;
+  private readonly dialogueBg: Graphics;
   private readonly viewport: Container;
   private readonly viewportMask: Graphics;
   private readonly bubblesRoot: Container;
@@ -44,6 +45,7 @@ export class Minigame2Screen extends AdaptiveScreen {
   private viewportY = 0;
   private viewportContentWidth = 0;
   private viewportContentHeight = 0;
+  private viewportInnerInsetY = 0;
 
   private bubbleWidth = 0;
   private bubblePadding = 0;
@@ -106,6 +108,7 @@ export class Minigame2Screen extends AdaptiveScreen {
     this.backButton.on("pointertap", this.handleBackTap);
 
     this.spinner = new Spinner();
+    this.dialogueBg = new Graphics();
 
     this.viewport = new Container();
     this.viewportMask = new Graphics();
@@ -128,6 +131,7 @@ export class Minigame2Screen extends AdaptiveScreen {
     this.addChild(
       this.title,
       this.progress,
+      this.dialogueBg,
       this.viewport,
       this.scrollTrack,
       this.scrollThumb,
@@ -144,15 +148,16 @@ export class Minigame2Screen extends AdaptiveScreen {
     this.viewportHeight = height;
 
     const minSide = Math.min(width, height);
-    const sidePadding = Math.round(minSide * Config.sidePaddingRatio);
+    const sidePadding = Math.round(width * 0.03);
     const topPadding = Math.round(minSide * Config.topPaddingRatio);
+    const scrollAreaInset = Math.round(width * 0.029);
 
     this.title.style.fontSize = Math.max(20, Math.round(minSide * 0.06));
     this.title.position.set(width * 0.5, topPadding);
 
     const backSize = Math.max(30, Math.round(minSide * 0.11));
     const backMargin = Math.max(8, Math.round(minSide * 0.02));
-    this.backButton.position.set(backMargin, backMargin);
+    this.backButton.position.set(backMargin, backMargin * 2.5);
     this.backButton.width = backSize;
     this.backButton.height = backSize;
 
@@ -162,8 +167,10 @@ export class Minigame2Screen extends AdaptiveScreen {
       this.title.y + this.title.height + Math.max(4, Math.round(minSide * 0.008)),
     );
 
-    const viewportTop = this.progress.y + this.progress.height + topPadding;
-    const viewportHeight = Math.max(40, height - viewportTop - topPadding);
+    const headerGap = Math.max(6, Math.round(width * 0.012));
+    const viewportTop = this.progress.y + this.progress.height + headerGap;
+    const viewportHeight = Math.max(40, height - viewportTop);
+    const dialogueBgHeight = Math.max(0, height - viewportTop);
 
     this.spinner.resize(width, height, 0);
 
@@ -173,7 +180,7 @@ export class Minigame2Screen extends AdaptiveScreen {
     this.speakerFontSize = Math.max(Config.minSpeakerSize, Math.round(minSide * Config.speakerSizeRatio));
     this.textFontSize = Math.max(Config.minTextSize, Math.round(minSide * Config.textSizeRatio));
     this.emojiSize = Math.max(Config.minEmojiSize, Math.round(minSide * Config.emojiSizeRatio));
-    this.avatarSize = Math.max(28, Math.round(minSide * 0.08));
+    this.avatarSize = 128;
     this.avatarGap = Math.max(8, Math.round(minSide * 0.015));
 
     this.scrollBarWidth = Math.max(6, Math.round(minSide * 0.012));
@@ -182,12 +189,17 @@ export class Minigame2Screen extends AdaptiveScreen {
     this.viewportX = sidePadding;
     this.viewportY = viewportTop;
     this.viewportContentHeight = viewportHeight;
-    this.viewportContentWidth = Math.max(
-      120,
-      width - sidePadding * 2 - this.scrollBarWidth - this.scrollBarGap,
-    );
+    this.viewportInnerInsetY = scrollAreaInset;
+    this.viewportContentWidth = Math.max(120, width - sidePadding * 2);
+
     const maxBubbleWidth = Math.max(80, this.viewportContentWidth - this.avatarSize - this.avatarGap);
     this.bubbleWidth = Math.min(Math.round(minSide * Config.bubbleWidthRatio), maxBubbleWidth);
+
+    this.dialogueBg
+      .clear()
+      .beginFill(0xff8c3a, 0.28)
+      .drawRect(0, viewportTop, width, dialogueBgHeight)
+      .endFill();
 
     this.viewport.position.set(this.viewportX, this.viewportY);
     this.viewportMask
@@ -230,12 +242,12 @@ export class Minigame2Screen extends AdaptiveScreen {
   }
 
   private rebuildVisibleBubbles(stickToBottom: boolean): void {
-    let currentY = 0;
+    let currentY = this.viewportInnerInsetY;
 
     this.bubblesRoot.removeChildren().forEach((child) => child.destroy({ children: true }));
 
     const visibleMessages = this.messages.slice(0, this.visibleCount);
-    visibleMessages.forEach((message, index) => {
+    visibleMessages.forEach((message) => {
       const isLeft = message.side === "left";
       const bubble = BubbleFactory.createDialogueBubble(message, {
         maxContentWidth: this.bubbleWidth - this.bubblePadding * 2,
@@ -248,13 +260,11 @@ export class Minigame2Screen extends AdaptiveScreen {
       });
 
       const avatar = this.createAvatarNode(message);
-      const avatarOffset = avatar ? this.avatarSize + this.avatarGap : 0;
-      const rowHeight = Math.max(bubble.height, avatar ? this.avatarSize : 0);
+      const avatarOffset = this.avatarSize + this.avatarGap;
+      const rowHeight = Math.max(bubble.height, this.avatarSize);
 
       bubble.position.set(
-        isLeft
-          ? avatarOffset
-          : this.viewportContentWidth - avatarOffset - this.bubbleWidth,
+        isLeft ? avatarOffset : this.viewportContentWidth - avatarOffset - this.bubbleWidth,
         currentY + (rowHeight - bubble.height) * 0.5,
       );
 
@@ -270,7 +280,10 @@ export class Minigame2Screen extends AdaptiveScreen {
       currentY += rowHeight + this.bubbleGap;
     });
 
-    this.contentHeight = Math.max(0, currentY - this.bubbleGap);
+    this.contentHeight = Math.max(
+      this.viewportInnerInsetY * 2,
+      currentY - this.bubbleGap + this.viewportInnerInsetY,
+    );
     this.scrollMax = Math.max(0, this.contentHeight - this.viewportContentHeight);
     if (stickToBottom) {
       this.scrollTop = this.scrollMax;
@@ -325,7 +338,8 @@ export class Minigame2Screen extends AdaptiveScreen {
       return;
     }
 
-    const x = this.viewportX + this.viewportContentWidth + this.scrollBarGap;
+    const rightInset = Math.max(4, Math.round(this.viewportWidth * 0.006));
+    const x = this.viewportWidth - this.scrollBarWidth - rightInset;
     const y = this.viewportY;
     const h = this.viewportContentHeight;
     const w = this.scrollBarWidth;
@@ -486,7 +500,8 @@ export class Minigame2Screen extends AdaptiveScreen {
   }
 
   private isPointInThumb(x: number, y: number): boolean {
-    const thumbX = this.viewportX + this.viewportContentWidth + this.scrollBarGap;
+    const rightInset = Math.max(4, Math.round(this.viewportWidth * 0.006));
+    const thumbX = this.viewportWidth - this.scrollBarWidth - rightInset;
     return (
       x >= thumbX &&
       x <= thumbX + this.scrollBarWidth &&
@@ -531,7 +546,5 @@ export class Minigame2Screen extends AdaptiveScreen {
     super.destroy(options);
   }
 }
-
-
 
 
