@@ -79,7 +79,7 @@ export class Minigame3Screen extends AdaptiveScreen {
 
     this.bgSprite = new Sprite(Texture.WHITE);
     this.bgSprite.anchor.set(0.5);
-    // this.bgSprite.tint = screenConfig.bgTint;
+    this.bgSprite.tint = screenConfig.bgTint;
 
     this.flameLayer = new Container();
 
