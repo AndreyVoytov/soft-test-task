@@ -7,7 +7,14 @@ import {
   type FederatedWheelEvent,
 } from "pixi.js";
 import { BubbleFactory } from "./BubbleFactory";
+import { Config } from "./Config";
 import type { DialogueMessage } from "./Types";
+
+type Geometry = {
+  screenWidth: number;
+  screenHeight: number;
+  contentTop: number;
+};
 
 type Layout = {
   screenWidth: number;
@@ -28,6 +35,25 @@ type Layout = {
   scrollBarWidth: number;
 };
 
+const viewportConfig = {
+  sidePadding: 0.03,
+  innerInset: 0.029,
+  avatarSize: 128,
+  avatarGap: 0.015,
+  scrollBarWidth: 0.012,
+  scrollBarRightInset: 0.006,
+  minViewportWidth: 120,
+  minViewportHeight: 40,
+  minBubbleWidth: 80,
+  minAvatarGap: 8,
+  minScrollBarWidth: 6,
+  minThumbHeight: 26,
+  trackColor: 0xffffff,
+  trackAlpha: 0.75,
+  thumbColor: 0x111111,
+  thumbAlpha: 0.15,
+} as const;
+
 const INITIAL_LAYOUT: Layout = {
   screenWidth: 0,
   viewportX: 0,
@@ -42,9 +68,9 @@ const INITIAL_LAYOUT: Layout = {
   speakerFontSize: 0,
   textFontSize: 0,
   emojiSize: 0,
-  avatarSize: 128,
-  avatarGap: 0,
-  scrollBarWidth: 6,
+  avatarSize: viewportConfig.avatarSize,
+  avatarGap: viewportConfig.minAvatarGap,
+  scrollBarWidth: viewportConfig.minScrollBarWidth,
 };
 
 export class DialogueViewport extends Container {
@@ -87,18 +113,26 @@ export class DialogueViewport extends Container {
     this.addChild(this.viewport, this.scrollTrack, this.scrollThumb);
   }
 
-  resize(layout: Layout): void {
-    this.layout = layout;
+  resize(geometry: Geometry): void {
+    this.layout = this.computeLayout(geometry);
 
-    this.viewport.position.set(layout.viewportX, layout.viewportY);
-    this.viewport.hitArea = new Rectangle(0, 0, layout.viewportWidth, layout.viewportHeight);
+    this.viewport.position.set(this.layout.viewportX, this.layout.viewportY);
+    this.viewport.hitArea = new Rectangle(0, 0, this.layout.viewportWidth, this.layout.viewportHeight);
 
     this.viewportMask.clear();
     this.viewportMask.beginFill(0xffffff, 1);
-    this.viewportMask.drawRect(0, 0, layout.viewportWidth, layout.viewportHeight);
+    this.viewportMask.drawRect(0, 0, this.layout.viewportWidth, this.layout.viewportHeight);
     this.viewportMask.endFill();
 
     this.rebuild(false);
+  }
+
+  get viewportY(): number {
+    return this.layout.viewportY;
+  }
+
+  get viewportHeight(): number {
+    return this.layout.viewportHeight;
   }
 
   setData(messages: DialogueMessage[], visibleCount: number, stickToBottom: boolean): void {
@@ -207,6 +241,38 @@ export class DialogueViewport extends Container {
     this.dragMoved = false;
   }
 
+  private computeLayout(geometry: Geometry): Layout {
+    const minSide = Math.min(geometry.screenWidth, geometry.screenHeight);
+    const viewportX = Math.round(geometry.screenWidth * viewportConfig.sidePadding);
+    const viewportWidth = Math.max(viewportConfig.minViewportWidth, geometry.screenWidth - viewportX * 2);
+    const viewportHeight = Math.max(viewportConfig.minViewportHeight, geometry.screenHeight - geometry.contentTop);
+
+    const avatarGap = Math.max(viewportConfig.minAvatarGap, Math.round(minSide * viewportConfig.avatarGap));
+    const maxBubbleWidth = Math.max(
+      viewportConfig.minBubbleWidth,
+      viewportWidth - viewportConfig.avatarSize - avatarGap,
+    );
+
+    return {
+      screenWidth: geometry.screenWidth,
+      viewportX,
+      viewportY: geometry.contentTop,
+      viewportWidth,
+      viewportHeight,
+      viewportInnerInsetY: Math.round(geometry.screenWidth * viewportConfig.innerInset),
+      bubbleWidth: Math.min(Math.round(minSide * Config.bubbleWidthRatio), maxBubbleWidth),
+      bubblePadding: Math.max(Config.minPadding, Math.round(minSide * Config.bubblePaddingRatio)),
+      bubbleRadius: Math.round(minSide * Config.bubbleRadiusRatio),
+      bubbleGap: Math.max(Config.minGap, Math.round(minSide * Config.bubbleGapRatio)),
+      speakerFontSize: Math.max(Config.minSpeakerSize, Math.round(minSide * Config.speakerSizeRatio)),
+      textFontSize: Math.max(Config.minTextSize, Math.round(minSide * Config.textSizeRatio)),
+      emojiSize: Math.max(Config.minEmojiSize, Math.round(minSide * Config.emojiSizeRatio)),
+      avatarSize: viewportConfig.avatarSize,
+      avatarGap,
+      scrollBarWidth: Math.max(viewportConfig.minScrollBarWidth, Math.round(minSide * viewportConfig.scrollBarWidth)),
+    };
+  }
+
   private rebuild(stickToBottom: boolean): void {
     const {
       bubbleWidth,
@@ -310,18 +376,18 @@ export class DialogueViewport extends Container {
       return;
     }
 
-    const rightInset = Math.max(4, Math.round(this.layout.screenWidth * 0.006));
+    const rightInset = Math.max(4, Math.round(this.layout.screenWidth * viewportConfig.scrollBarRightInset));
     const x = this.layout.screenWidth - this.layout.scrollBarWidth - rightInset;
     const y = this.layout.viewportY;
     const h = this.layout.viewportHeight;
     const w = this.layout.scrollBarWidth;
 
     this.scrollTrack.clear();
-    this.scrollTrack.beginFill(0xffffff, 0.75);
+    this.scrollTrack.beginFill(viewportConfig.trackColor, viewportConfig.trackAlpha);
     this.scrollTrack.drawRoundedRect(x, y, w, h, w * 0.5);
     this.scrollTrack.endFill();
 
-    const thumbHeight = Math.max(26, (h * h) / this.contentHeight);
+    const thumbHeight = Math.max(viewportConfig.minThumbHeight, (h * h) / this.contentHeight);
     const thumbTravel = h - thumbHeight;
     const thumbY = y + (this.scrollTop / this.scrollMax) * thumbTravel;
 
@@ -329,7 +395,7 @@ export class DialogueViewport extends Container {
     this.scrollThumbHeight = thumbHeight;
 
     this.scrollThumb.clear();
-    this.scrollThumb.beginFill(0x111111, 0.15);
+    this.scrollThumb.beginFill(viewportConfig.thumbColor, viewportConfig.thumbAlpha);
     this.scrollThumb.drawRoundedRect(x, thumbY, w, thumbHeight, w * 0.5);
     this.scrollThumb.endFill();
   }
@@ -348,7 +414,7 @@ export class DialogueViewport extends Container {
   }
 
   private isPointInThumb(x: number, y: number): boolean {
-    const rightInset = Math.max(4, Math.round(this.layout.screenWidth * 0.006));
+    const rightInset = Math.max(4, Math.round(this.layout.screenWidth * viewportConfig.scrollBarRightInset));
     const thumbX = this.layout.screenWidth - this.layout.scrollBarWidth - rightInset;
 
     return (

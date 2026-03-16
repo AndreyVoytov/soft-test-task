@@ -7,12 +7,17 @@ import {
   type FederatedWheelEvent,
 } from "pixi.js";
 import { Spinner } from "../components/Spinner";
-import { Config } from "../minigames/minigame2/Config";
 import { DialogueStore } from "../minigames/minigame2/DialogueStore";
 import { Header } from "../minigames/minigame2/Header";
 import { DialogueViewport } from "../minigames/minigame2/DialogueViewport";
 import type { DialogueMessage } from "../minigames/minigame2/Types";
 import { AdaptiveScreen } from "./AdaptiveScreen";
+
+// all values in config are ratios to the smaller screen side (width or height)
+const layoutConfig = {
+  statusSize: 0.04,
+  dialogueBgColor: 0xe3eff4,
+} as const;
 
 export class Minigame2Screen extends AdaptiveScreen {
   private readonly onBack: () => void;
@@ -66,49 +71,23 @@ export class Minigame2Screen extends AdaptiveScreen {
     this.viewportHeight = height;
 
     const minSide = Math.min(width, height);
-    const sidePadding = Math.round(width * 0.03);
-    const scrollAreaInset = Math.round(width * 0.029);
 
     this.header.resize(width, height);
-
-    const viewportTop = this.header.contentTop;
-    const viewportHeight = Math.max(40, height - viewportTop);
+    this.dialogueViewport.resize({
+      screenWidth: width,
+      screenHeight: height,
+      contentTop: this.header.contentTop,
+    });
 
     this.dialogueBg.clear();
-    this.dialogueBg.beginFill(0xe3eff4, 1);
-    this.dialogueBg.drawRect(0, viewportTop, width, Math.max(0, height - viewportTop));
+    this.dialogueBg.beginFill(layoutConfig.dialogueBgColor, 1);
+    this.dialogueBg.drawRect(0, this.header.contentTop, width, Math.max(0, height - this.header.contentTop));
     this.dialogueBg.endFill();
 
     this.spinner.resize(width, height, 0);
 
-    const bubbleGap = Math.max(Config.minGap, Math.round(minSide * Config.bubbleGapRatio));
-    const bubblePadding = Math.max(Config.minPadding, Math.round(minSide * Config.bubblePaddingRatio));
-    const avatarSize = 128;
-    const avatarGap = Math.max(8, Math.round(minSide * 0.015));
-    const viewportWidth = Math.max(120, width - sidePadding * 2);
-    const maxBubbleWidth = Math.max(80, viewportWidth - avatarSize - avatarGap);
-
-    this.dialogueViewport.resize({
-      screenWidth: width,
-      viewportX: sidePadding,
-      viewportY: viewportTop,
-      viewportWidth,
-      viewportHeight,
-      viewportInnerInsetY: scrollAreaInset,
-      bubbleWidth: Math.min(Math.round(minSide * Config.bubbleWidthRatio), maxBubbleWidth),
-      bubblePadding,
-      bubbleRadius: Math.round(minSide * Config.bubbleRadiusRatio),
-      bubbleGap,
-      speakerFontSize: Math.max(Config.minSpeakerSize, Math.round(minSide * Config.speakerSizeRatio)),
-      textFontSize: Math.max(Config.minTextSize, Math.round(minSide * Config.textSizeRatio)),
-      emojiSize: Math.max(Config.minEmojiSize, Math.round(minSide * Config.emojiSizeRatio)),
-      avatarSize,
-      avatarGap,
-      scrollBarWidth: Math.max(6, Math.round(minSide * 0.012)),
-    });
-
-    this.status.style.fontSize = Math.max(16, Math.round(minSide * 0.04));
-    this.status.position.set(width * 0.5, viewportTop + viewportHeight * 0.5);
+    this.status.style.fontSize = Math.max(16, Math.round(minSide * layoutConfig.statusSize));
+    this.status.position.set(width * 0.5, this.dialogueViewport.viewportY + this.dialogueViewport.viewportHeight * 0.5);
     this.hitArea = new Rectangle(0, 0, width, height);
 
     this.applyState();
@@ -190,15 +169,14 @@ export class Minigame2Screen extends AdaptiveScreen {
   };
 
   private async loadDialogue(): Promise<void> {
-    const shouldShowSpinner = !DialogueStore.hasCache();
-    this.isLoading = shouldShowSpinner;
+    this.isLoading = !DialogueStore.hasCache();
 
     if (!this.destroyed) {
       this.resize(this.viewportWidth, this.viewportHeight);
     }
 
     const loadTask = DialogueStore.getMessages();
-    if (shouldShowSpinner) {
+    if (this.isLoading) {
       await this.spinner.spinUntil(loadTask);
     }
 

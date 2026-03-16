@@ -2,58 +2,53 @@ import { Container, Graphics, Sprite, Text, TextMetrics, TextStyle } from "pixi.
 import { Config } from "./Config";
 import type { DialogueMessage, Segment } from "./Types";
 
-export class BubbleFactory {
-  private static readonly labelStyle = new TextStyle({
-    fill: 0x2c3e50,
-    fontFamily: "Arial",
-    fontSize: 16,
-    fontWeight: "700",
-  });
+type BubbleLayout = {
+  maxContentWidth: number;
+  bubbleWidth: number;
+  bubblePadding: number;
+  bubbleRadius: number;
+  speakerFontSize: number;
+  textFontSize: number;
+  emojiSize: number;
+};
 
-  static createDialogueBubble(
-    message: DialogueMessage,
-    params: {
-      maxContentWidth: number;
-      bubbleWidth: number;
-      bubblePadding: number;
-      bubbleRadius: number;
-      speakerFontSize: number;
-      textFontSize: number;
-      emojiSize: number;
-    },
-  ): Container {
+const COLORS = {
+  speaker: 0x2c3e50,
+  text: 0x1f2933,
+  bubbleFill: 0xffffff,
+  bubbleStroke: 0xced4da,
+} as const;
+
+export class BubbleFactory {
+  static createDialogueBubble(message: DialogueMessage, layout: BubbleLayout): Container {
     const root = new Container();
     const bg = new Graphics();
     const content = new Container();
 
     const speaker = new Text(message.speaker, {
-      ...this.labelStyle,
-      fontSize: params.speakerFontSize,
+      fill: COLORS.speaker,
+      fontFamily: "Arial",
+      fontSize: layout.speakerFontSize,
+      fontWeight: "700",
     });
-    speaker.position.set(params.bubblePadding, params.bubblePadding);
+    speaker.position.set(layout.bubblePadding, layout.bubblePadding);
 
     const textStyle = new TextStyle({
-      fill: 0x1f2933,
+      fill: COLORS.text,
       fontFamily: "Arial",
-      fontSize: params.textFontSize,
+      fontSize: layout.textFontSize,
       fontWeight: "500",
     });
 
-    const speakerGap = Math.max(6, Math.round(params.bubblePadding * 0.6));
-    const contentTop = speaker.y + speaker.height + speakerGap;
+    const contentTop = speaker.y + speaker.height + Math.max(6, Math.round(layout.bubblePadding * 0.6));
+    const contentHeight = this.drawSegments(content, message.segments, layout.maxContentWidth, layout.emojiSize, textStyle);
 
-    const contentHeight = this.drawSegments(content, message.segments, {
-      maxWidth: params.maxContentWidth,
-      textStyle,
-      emojiSize: params.emojiSize,
-    });
+    content.position.set(layout.bubblePadding, contentTop);
 
-    content.position.set(params.bubblePadding, contentTop);
-
-    const bubbleHeight = contentTop + contentHeight + params.bubblePadding;
-    bg.beginFill(0xffffff, 0.98);
-    bg.lineStyle(2, 0xced4da, 1);
-    bg.drawRoundedRect(0, 0, params.bubbleWidth, bubbleHeight, params.bubbleRadius);
+    const bubbleHeight = contentTop + contentHeight + layout.bubblePadding;
+    bg.beginFill(COLORS.bubbleFill, 0.98);
+    bg.lineStyle(2, COLORS.bubbleStroke, 1);
+    bg.drawRoundedRect(0, 0, layout.bubbleWidth, bubbleHeight, layout.bubbleRadius);
     bg.endFill();
 
     root.addChild(bg, speaker, content);
@@ -63,16 +58,11 @@ export class BubbleFactory {
   private static drawSegments(
     target: Container,
     segments: Segment[],
-    params: {
-      maxWidth: number;
-      textStyle: TextStyle;
-      emojiSize: number;
-    },
+    maxWidth: number,
+    emojiSize: number,
+    textStyle: TextStyle,
   ): number {
-    const lineHeight = Math.max(
-      params.emojiSize,
-      Math.round((params.textStyle.fontSize as number) * Config.lineHeightRatio),
-    );
+    const lineHeight = Math.max(emojiSize, Math.round((textStyle.fontSize as number) * Config.lineHeightRatio));
 
     let x = 0;
     let y = 0;
@@ -82,17 +72,17 @@ export class BubbleFactory {
       y += lineHeight;
     };
 
-    const pushText = (textPart: string): void => {
-      if (textPart.length === 0) {
+    const pushText = (value: string): void => {
+      if (!value) {
         return;
       }
 
-      const tokens = textPart.split(/(\s+)/).filter((token) => token.length > 0);
+      const tokens = value.split(/(\s+)/).filter(Boolean);
       for (const token of tokens) {
-        const tokenWidth = TextMetrics.measureText(token, params.textStyle).width;
         const isSpace = /^\s+$/.test(token);
+        const tokenWidth = TextMetrics.measureText(token, textStyle).width;
 
-        if (!isSpace && x > 0 && x + tokenWidth > params.maxWidth) {
+        if (!isSpace && x > 0 && x + tokenWidth > maxWidth) {
           newLine();
         }
 
@@ -100,7 +90,7 @@ export class BubbleFactory {
           continue;
         }
 
-        const text = new Text(token, params.textStyle);
+        const text = new Text(token, textStyle);
         text.position.set(x, y + (lineHeight - text.height) * 0.5);
         target.addChild(text);
         x += tokenWidth;
@@ -113,22 +103,18 @@ export class BubbleFactory {
         continue;
       }
 
-      const size = params.emojiSize;
-      if (x > 0 && x + size > params.maxWidth) {
+      if (x > 0 && x + emojiSize > maxWidth) {
         newLine();
       }
 
       const sprite = Sprite.from(segment.url);
-      sprite.width = size;
-      sprite.height = size;
-      sprite.position.set(x, y + (lineHeight - size) * 0.5);
+      sprite.width = emojiSize;
+      sprite.height = emojiSize;
+      sprite.position.set(x, y + (lineHeight - emojiSize) * 0.5);
       target.addChild(sprite);
-      x += size;
+      x += emojiSize;
     }
 
     return y + lineHeight;
   }
 }
-
-
-

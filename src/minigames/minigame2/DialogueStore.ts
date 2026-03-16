@@ -5,7 +5,6 @@ import type { DialogueMessage } from "./Types";
 
 export class DialogueStore {
   private static cachedMessages: DialogueMessage[] | null = null;
-  private static inFlight: Promise<DialogueMessage[]> | null = null;
 
   static hasCache(): boolean {
     return this.cachedMessages !== null;
@@ -16,16 +15,8 @@ export class DialogueStore {
       return this.cachedMessages;
     }
 
-    if (!this.inFlight) {
-      this.inFlight = this.loadMessages();
-    }
-
-    try {
-      this.cachedMessages = await this.inFlight;
-      return this.cachedMessages;
-    } finally {
-      this.inFlight = null;
-    }
+    this.cachedMessages = await this.loadMessages();
+    return this.cachedMessages;
   }
 
   private static async loadMessages(): Promise<DialogueMessage[]> {

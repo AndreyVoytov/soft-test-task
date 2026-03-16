@@ -7,6 +7,17 @@ type HeaderParams = {
   onBack: () => void;
 };
 
+// all values in config are ratios to the smaller screen side (width or height)
+const headerConfig = {
+  titleSize: 0.06,
+  progressSize: 0.03,
+  progressGap: 0.008,
+  backSize: 0.11,
+  backMargin: 0.02,
+  headerGap: 0.012,
+  bgColor: 0xffdeb8,
+} as const;
+
 export class Header extends Container {
   private readonly bg: Graphics;
   private readonly title: Text;
@@ -53,26 +64,26 @@ export class Header extends Container {
     const minSide = Math.min(width, height);
     const topPadding = Math.round(minSide * Config.topPaddingRatio);
 
-    this.title.style.fontSize = Math.max(20, Math.round(minSide * 0.06));
+    this.title.style.fontSize = Math.max(20, Math.round(minSide * headerConfig.titleSize));
     this.title.position.set(width * 0.5, topPadding);
 
-    const backSize = Math.max(30, Math.round(minSide * 0.11));
-    const backMargin = Math.max(8, Math.round(minSide * 0.02));
+    const backSize = Math.max(30, Math.round(minSide * headerConfig.backSize));
+    const backMargin = Math.max(8, Math.round(minSide * headerConfig.backMargin));
     this.backButton.position.set(backMargin, backMargin * 2.5);
     this.backButton.width = backSize;
     this.backButton.height = backSize;
 
-    this.progress.style.fontSize = Math.max(14, Math.round(minSide * 0.03));
+    this.progress.style.fontSize = Math.max(14, Math.round(minSide * headerConfig.progressSize));
     this.progress.position.set(
       width * 0.5,
-      this.title.y + this.title.height + Math.max(4, Math.round(minSide * 0.008)),
+      this.title.y + this.title.height + Math.max(4, Math.round(minSide * headerConfig.progressGap)),
     );
 
-    const headerGap = Math.max(6, Math.round(width * 0.012));
-    this.viewportTop = this.progress.y + this.progress.height + headerGap;
+    const gap = Math.max(6, Math.round(width * headerConfig.headerGap));
+    this.viewportTop = this.progress.y + this.progress.height + gap;
 
     this.bg.clear();
-    this.bg.beginFill(0xffdeb8, 1);
+    this.bg.beginFill(headerConfig.bgColor, 1);
     this.bg.drawRect(0, 0, width, this.viewportTop);
     this.bg.endFill();
   }
