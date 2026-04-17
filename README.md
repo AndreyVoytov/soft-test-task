@@ -1,6 +1,6 @@
 # soft-test-task
 
-Pixi.js + TypeScript test assignment with three mini-games and a shared screen/navigation framework.
+Pixi.js + TypeScript test assignment with four mini-games and a shared screen/navigation framework.
 
 ## Stack
 - TypeScript
@@ -50,6 +50,12 @@ npm run preview
 - Particle-effect fire demo using only particle sprites (`particle1/2/3`) and `bg`.
 - At most 10 particle sprites active simultaneously.
 - Assets for minigame 3 are loaded only on first open, then reused from cache.
+
+4. `Prism Merge`
+- Merge-2 board on a 10x15 field with drag-to-move and drag-to-merge interactions.
+- Starts with 400 energy and two generators with different tap capacities / cooldowns.
+- Four merge chains are defined in configuration, including unlocked generator items for chains 3 and 4.
+- Start level is described by a dedicated config so generator positions and seeded items are easy to tune.
 
 ## Notes
 - Screens are responsive and implement `resize(width, height)`.
