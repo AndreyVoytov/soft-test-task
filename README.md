@@ -19,11 +19,18 @@ npm run build
 npm run preview
 ```
 
+## GitHub Pages deployment
+1. Push the repository to GitHub.
+2. In **Settings -> Pages**, set **Source** to **GitHub Actions**.
+3. Push to `main` or `master` (or run the workflow manually from the **Actions** tab).
+4. The workflow publishes the Vite `dist` folder to GitHub Pages automatically.
+
+> Note: `vite.config.ts` already uses `base: "/soft-test-task/"`, so the published site works correctly at `https://<your-account>.github.io/soft-test-task/`. If you rename the repository, update the `base` value as well.
+
 ## Project Structure
 - `src/components` — shared app infrastructure and reusable UI components.
-- `src/screens` — top-level screens (`Loading`, `Menu`, `Minigame1/2/3/4`).
+- `src/screens` — top-level screens (`Loading`, `Menu`, `Minigame1/2/3`).
 - `src/minigames/minigame2` — dialogue-specific domain code and reusable minigame header.
-- `src/minigames/minigame4` — merge-game configuration and typed setup data.
 - `images` — sprite assets used by menu and minigames.
 
 ## Mini-games
