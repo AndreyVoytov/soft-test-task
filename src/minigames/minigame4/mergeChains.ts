@@ -1,0 +1,78 @@
+import type { MergeChainConfig } from "./types";
+
+export const mergeChainsConfig: MergeChainConfig[] = [
+  {
+    id: "ember",
+    label: "Ember Bloom",
+    description: "Base chain from the first generator. Grade 6 turns into the generator for the crystal chain.",
+    nodes: [
+      { key: "ember-1", label: "Spark Dot", chainId: "ember", grade: 1, color: 0xff8a5b, shape: "circle" },
+      { key: "ember-2", label: "Flare Cube", chainId: "ember", grade: 2, color: 0xff7043, shape: "square" },
+      { key: "ember-3", label: "Blaze Diamond", chainId: "ember", grade: 3, color: 0xff5722, shape: "diamond" },
+      { key: "ember-4", label: "Nova Prism", chainId: "ember", grade: 4, color: 0xffa726, shape: "triangle" },
+      { key: "ember-5", label: "Solar Core", chainId: "ember", grade: 5, color: 0xffca28, shape: "hex" },
+      {
+        key: "ember-6",
+        label: "Crystal Forge",
+        chainId: "ember",
+        grade: 6,
+        color: 0xffd54f,
+        shape: "star",
+        generatesChainId: "crystal",
+        generatorBehavior: { kind: "infinite" },
+      },
+    ],
+  },
+  {
+    id: "mist",
+    label: "Mist Relay",
+    description: "Base chain from the second generator. Grade 7 becomes the generator for the grove chain.",
+    nodes: [
+      { key: "mist-1", label: "Drop Seed", chainId: "mist", grade: 1, color: 0x7dd3fc, shape: "circle" },
+      { key: "mist-2", label: "Rain Block", chainId: "mist", grade: 2, color: 0x38bdf8, shape: "square" },
+      { key: "mist-3", label: "Cloud Gem", chainId: "mist", grade: 3, color: 0x0ea5e9, shape: "diamond" },
+      { key: "mist-4", label: "Stream Arrow", chainId: "mist", grade: 4, color: 0x0284c7, shape: "triangle" },
+      { key: "mist-5", label: "Storm Hex", chainId: "mist", grade: 5, color: 0x0369a1, shape: "hex" },
+      { key: "mist-6", label: "Current Crest", chainId: "mist", grade: 6, color: 0x075985, shape: "pill" },
+      {
+        key: "mist-7",
+        label: "Grove Engine",
+        chainId: "mist",
+        grade: 7,
+        color: 0x0f766e,
+        shape: "cross",
+        generatesChainId: "grove",
+        generatorBehavior: { kind: "infinite" },
+      },
+    ],
+  },
+  {
+    id: "crystal",
+    label: "Crystal Spiral",
+    description: "Unlocked by Ember grade 6 and merges through seven grades.",
+    nodes: [
+      { key: "crystal-1", label: "Shard One", chainId: "crystal", grade: 1, color: 0xc084fc, shape: "diamond" },
+      { key: "crystal-2", label: "Shard Two", chainId: "crystal", grade: 2, color: 0xa855f7, shape: "square" },
+      { key: "crystal-3", label: "Facet Three", chainId: "crystal", grade: 3, color: 0x9333ea, shape: "triangle" },
+      { key: "crystal-4", label: "Prism Four", chainId: "crystal", grade: 4, color: 0x7e22ce, shape: "hex" },
+      { key: "crystal-5", label: "Aura Five", chainId: "crystal", grade: 5, color: 0x6b21a8, shape: "star" },
+      { key: "crystal-6", label: "Nova Six", chainId: "crystal", grade: 6, color: 0x581c87, shape: "pill" },
+      { key: "crystal-7", label: "Crown Seven", chainId: "crystal", grade: 7, color: 0x3b0764, shape: "circle" },
+    ],
+  },
+  {
+    id: "grove",
+    label: "Grove Pulse",
+    description: "Unlocked by Mist grade 7 and merges through eight grades.",
+    nodes: [
+      { key: "grove-1", label: "Leaf One", chainId: "grove", grade: 1, color: 0x86efac, shape: "circle" },
+      { key: "grove-2", label: "Leaf Two", chainId: "grove", grade: 2, color: 0x4ade80, shape: "square" },
+      { key: "grove-3", label: "Bud Three", chainId: "grove", grade: 3, color: 0x22c55e, shape: "diamond" },
+      { key: "grove-4", label: "Stem Four", chainId: "grove", grade: 4, color: 0x16a34a, shape: "triangle" },
+      { key: "grove-5", label: "Bloom Five", chainId: "grove", grade: 5, color: 0x15803d, shape: "hex" },
+      { key: "grove-6", label: "Vine Six", chainId: "grove", grade: 6, color: 0x166534, shape: "star" },
+      { key: "grove-7", label: "Canopy Seven", chainId: "grove", grade: 7, color: 0x14532d, shape: "pill" },
+      { key: "grove-8", label: "Heartwood Eight", chainId: "grove", grade: 8, color: 0x052e16, shape: "cross" },
+    ],
+  },
+];
