@@ -5,6 +5,7 @@ import { MenuScreen, type MinigameId } from "../screens/MenuScreen";
 import { Minigame1Screen } from "../screens/Minigame1Screen";
 import { Minigame2Screen } from "../screens/Minigame2Screen";
 import { Minigame3Screen } from "../screens/Minigame3Screen";
+import { Minigame4Screen } from "../screens/Minigame4Screen";
 import { BaseGame } from "./BaseGame";
 
 export class Game extends BaseGame {
@@ -42,6 +43,9 @@ export class Game extends BaseGame {
         break;
       case "minigame3":
         this.setCurrentScreen(new Minigame3Screen({ onBack: () => this.showMenu() }));
+        break;
+      case "minigame4":
+        this.setCurrentScreen(new Minigame4Screen({ onBack: () => this.showMenu() }));
         break;
     }
   }
